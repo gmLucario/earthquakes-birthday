@@ -6,6 +6,7 @@ use std::collections::HashMap;
 
 use crate::config::Config;
 use crate::consts::{MIN_AMOUNT_EARTHQUAKE, MIN_MAGNITUDE_EARTHQUAKE};
+use crate::helpers::get_mean_magnitude;
 use crate::models::Earthquake;
 use crate::schemas::input::RawEarthquake;
 
@@ -103,7 +104,16 @@ impl Processor {
         let mut more_frequent_ones: Vec<(usize, String)> = grouped
             .iter()
             .filter(|(_, v)| v.len() >= MIN_AMOUNT_EARTHQUAKE)
-            .map(|(date, v)| (v.len(), format!("{date}: {group_len}", group_len = v.len())))
+            .map(|(date, v)| {
+                (
+                    v.len(),
+                    format!(
+                        "{date}: {group_len} earthquakes - {avg_magnitude:.2} average magnitude ",
+                        group_len = v.len(),
+                        avg_magnitude = get_mean_magnitude(v),
+                    ),
+                )
+            })
             .collect::<Vec<(usize, String)>>();
 
         more_frequent_ones.sort_by_key(|data| Reverse(data.0));
@@ -113,7 +123,7 @@ impl Processor {
             .collect();
 
         for frequent in more_frequent_ones {
-            println!("{frequent}");
+            println!("{frequent:^100}");
         }
     }
 }
